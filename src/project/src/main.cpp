@@ -4,6 +4,8 @@
 
 #include <math.h>
 
+#include <nav_msgs/Odometry.h>
+
 #include "project/odom.h"
 #include "project/floatStamped.h"
 #include <dynamic_reconfigure/server.h>
@@ -57,27 +59,41 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   double w_k;
   double T_s = (r_vel->header.stamp.nsec - t_k) * pow(10,-9);
   double alpha = steer->data * PI / 180 / STEERING_FACTOR;
-
+  nav_msgs::Odometry msg;
 
   if(diff_not_ack)
   {
-    w_k = (r_vel->data - l_vel->data)/BASELINE
+    w_k = (r_vel->data - l_vel->data)/BASELINE;
 
     x_k = x_k + V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
     y_k = y_k + V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
     theta_k = theta_k + w_k * T_s;
+
+    msg.pose.pose.orientation.x = cos(theta_k);
+    msg.pose.pose.orientation.y = sin(theta_k);
+    msg.child_frame_id = "Differential";
   } else
   {
-    w_k = V_k * tan(alpha) / FRONT_REAL_WHEELS_DISTANCE
+    w_k = V_k * tan(alpha) / FRONT_REAL_WHEELS_DISTANCE;
 
     x_k = x_k + V_k * cos(alpha) * T_s;
     y_k = y_k + V_k * sin(alpha) * T_s;
     theta_k = theta_k + w_k * T_s;
-    //ROS_INFO("PIPPOOOOOOOOOOOOOOOO");
+
+    msg.pose.pose.orientation.x = cos(theta_k);
+    msg.pose.pose.orientation.y = sin(theta_k);
+    msg.child_frame_id = "Ackermann";
   }
   t_k = r_vel->header.stamp.nsec;
-  ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
+  //ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
 
+  msg.pose.pose.position.x = x_k;
+  msg.pose.pose.position.y = y_k;
+  msg.pose.pose.position.z = 0.0;
+  msg.header = r_vel->header;
+
+
+  pub.publish(msg);
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
 }
 
@@ -95,6 +111,7 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
+  pub = n.advertise<nav_msgs::Odometry>("odom",1000);
 
   message_filters::Subscriber<project::floatStamped> sub_r_vel(n, "speedR_stamped", 1);
   message_filters::Subscriber<project::floatStamped> sub_l_vel(n, "speedL_stamped", 1);
