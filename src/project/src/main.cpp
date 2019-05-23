@@ -49,8 +49,8 @@ void callback(const project::floatStamped::ConstPtr& r_vel,
 
 
 
-  x_k = x_k + V_k * T_s * cos(theta_k * PI + (w_k * T_s) / 2);
-  y_k = y_k + V_k * T_s * sin(theta_k * PI + (w_k * T_s) / 2);
+  x_k = x_k + V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
+  y_k = y_k + V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
   theta_k = theta_k + w_k * T_s;
 
   ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
