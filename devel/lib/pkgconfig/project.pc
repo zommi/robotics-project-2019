@@ -1,8 +1,0 @@
-prefix=/home/zommi/Desktop/robotics-project-2019/devel
-
-Name: project
-Description: Description of project
-Version: 0.0.0
-Cflags: -I/home/zommi/Desktop/robotics-project-2019/devel/include
-Libs: -L/home/zommi/Desktop/robotics-project-2019/devel/lib 
-Requires: 
