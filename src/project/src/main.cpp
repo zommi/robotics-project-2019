@@ -6,11 +6,23 @@
 
 #include "project/odom.h"
 #include "project/floatStamped.h"
+#include <dynamic_reconfigure/server.h>
+#include <project/parametersConfig.h>
 
 #define BASELINE 1.30
 #define FRONT_REAL_WHEELS_DISTANCE 1.765
 #define STEERING_FACTOR 18
 #define PI 3.14159
+
+bool diff_not_ack = true;
+
+/*cambia il valore del booleano diff_not_ack. Se vale vero, l'odometria verra calcolata
+in maniera differenziale, se falso invece secondo ackerman
+ */
+void paramCallback(project::parametersConfig &config, uint32_t level) {
+  ROS_INFO("Reconfigure Request: %s", config.diff_not_ack?"True":"False");
+  diff_not_ack = config.diff_not_ack;
+}
 
 typedef message_filters::sync_policies::ApproximateTime<project::floatStamped,
                                       project::floatStamped,
@@ -48,6 +60,14 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "main");
 
+  //linee di codice per la dynamic configuration
+  dynamic_reconfigure::Server<project::parametersConfig> server;
+  dynamic_reconfigure::Server<project::parametersConfig>::CallbackType f;
+  //bindo la funzione che aggiorna i parametri
+  f = boost::bind(&paramCallback, _1, _2);
+  // setto la funzione di collback nel server
+  server.setCallback(f);
+
   ros::NodeHandle n;
 
   ros::Publisher p;
@@ -62,6 +82,3 @@ int main(int argc, char** argv)
 
   return 0;
 }
-
-
-

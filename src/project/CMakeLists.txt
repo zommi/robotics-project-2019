@@ -208,3 +208,6 @@ add_dependencies(main ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARG
 target_link_libraries(main
   ${catkin_LIBRARIES}
 )
+
+# utilizzato per la dynamic reconfigure. il nodo main deve essere già buildato
+add_dependencies(main $(PROJECT_NAME)_gencfg)
