@@ -47,6 +47,8 @@ message_filters/time_synchronizer.h
 -
 message_filters/sync_policies/approximate_time.h
 -
+math.h
+-
 project/odom.h
 /home/zommi/Desktop/robotics-project-2019/src/project/src/project/odom.h
 project/floatStamped.h
