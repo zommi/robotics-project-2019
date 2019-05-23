@@ -21,10 +21,13 @@ double y_k = 0;
 double theta_k = 0;
 double t_k = 0;
 
+ros::Publisher pub;
+
 /*cambia il valore del booleano diff_not_ack. Se vale vero, l'odometria verra calcolata
 in maniera differenziale, se falso invece secondo ackerman
  */
-void paramCallback(project::parametersConfig &config, uint32_t level) {
+void param_callback(project::parametersConfig &config, uint32_t level)
+{
   ROS_INFO("Reconfigure Request: diff_not_ack = %s, x = %f, y = %f",
                                 config.diff_not_ack?"True":"False",
                                 config.x,
@@ -44,7 +47,7 @@ using namespace message_filters;
 
 
 
-void callback(const project::floatStamped::ConstPtr& r_vel,
+void odom_callback(const project::floatStamped::ConstPtr& r_vel,
               const project::floatStamped::ConstPtr& l_vel,
               const project::floatStamped::ConstPtr& steer)
 {
@@ -55,13 +58,17 @@ void callback(const project::floatStamped::ConstPtr& r_vel,
   double T_s = (r_vel->header.stamp.nsec - t_k) * pow(10,-9);
 
 
-
-  x_k = x_k + V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
-  y_k = y_k + V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
-  theta_k = theta_k + w_k * T_s;
-
+  if(diff_not_ack)
+  {
+    x_k = x_k + V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
+    y_k = y_k + V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
+    theta_k = theta_k + w_k * T_s;
+    ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
+  } else
+  {
+    ROS_INFO("PIPPOOOOOOOOOOOOOOOO");
+  }
   t_k = r_vel->header.stamp.nsec;
-  ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
 }
 
@@ -73,21 +80,21 @@ int main(int argc, char** argv)
   dynamic_reconfigure::Server<project::parametersConfig> server;
   dynamic_reconfigure::Server<project::parametersConfig>::CallbackType f;
   //bindo la funzione che aggiorna i parametri
-  f = boost::bind(&paramCallback, _1, _2);
+  f = boost::bind(&param_callback, _1, _2);
   // setto la funzione di collback nel server
   server.setCallback(f);
 
   ros::NodeHandle n;
 
-  ros::Publisher p;
 
   message_filters::Subscriber<project::floatStamped> sub_r_vel(n, "speedR_stamped", 1);
   message_filters::Subscriber<project::floatStamped> sub_l_vel(n, "speedL_stamped", 1);
   message_filters::Subscriber<project::floatStamped> sub_steer(n, "steer_stamped", 1);
   message_filters::Synchronizer<myPolicy> sync(myPolicy(10), sub_r_vel,sub_l_vel,sub_steer);
-  sync.registerCallback(boost::bind(&callback, _1, _2, _3));
+  sync.registerCallback(boost::bind(&odom_callback, _1, _2, _3));
 
   ros::spin();
 
   return 0;
 }
+
