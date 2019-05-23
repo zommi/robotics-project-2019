@@ -61,14 +61,14 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
 
   if(diff_not_ack)
   {
-    w_k = (r_vel->data - l_vel->data)/BASELINE
+    w_k = (r_vel->data - l_vel->data)/BASELINE;
 
     x_k = x_k + V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
     y_k = y_k + V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
     theta_k = theta_k + w_k * T_s;
   } else
   {
-    w_k = V_k * tan(alpha) / FRONT_REAL_WHEELS_DISTANCE
+    w_k = V_k * tan(alpha) / FRONT_REAL_WHEELS_DISTANCE;
 
     x_k = x_k + V_k * cos(alpha) * T_s;
     y_k = y_k + V_k * sin(alpha) * T_s;
@@ -106,4 +106,3 @@ int main(int argc, char** argv)
 
   return 0;
 }
-
