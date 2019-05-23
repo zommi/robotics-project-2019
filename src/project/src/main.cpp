@@ -54,21 +54,30 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   //ROS_INFO("I heard: [%f] - [%f] - [%f]", r_vel->header.stamp.sec, l_vel->header.stamp.sec, steer->header.stamp.sec);
 
   double V_k = (r_vel->data + l_vel->data)/2;
-  double w_k = (r_vel->data - l_vel->data)/BASELINE;
+  double w_k;
   double T_s = (r_vel->header.stamp.nsec - t_k) * pow(10,-9);
+  double alpha = steer->data * PI / 180 / STEERING_FACTOR;
 
 
   if(diff_not_ack)
   {
+    w_k = (r_vel->data - l_vel->data)/BASELINE
+
     x_k = x_k + V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
     y_k = y_k + V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
     theta_k = theta_k + w_k * T_s;
-    ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
   } else
   {
-    ROS_INFO("PIPPOOOOOOOOOOOOOOOO");
+    w_k = V_k * tan(alpha) / FRONT_REAL_WHEELS_DISTANCE
+
+    x_k = x_k + V_k * cos(alpha) * T_s;
+    y_k = y_k + V_k * sin(alpha) * T_s;
+    theta_k = theta_k + w_k * T_s;
+    //ROS_INFO("PIPPOOOOOOOOOOOOOOOO");
   }
   t_k = r_vel->header.stamp.nsec;
+  ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
+
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
 }
 
