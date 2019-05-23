@@ -50,6 +50,8 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
+  ros::Publisher p;
+
   message_filters::Subscriber<project::floatStamped> sub_r_vel(n, "speedR_stamped", 1);
   message_filters::Subscriber<project::floatStamped> sub_l_vel(n, "speedL_stamped", 1);
   message_filters::Subscriber<project::floatStamped> sub_steer(n, "steer_stamped", 1);
