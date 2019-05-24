@@ -13,6 +13,7 @@
 #define FRONT_REAL_WHEELS_DISTANCE 1.765
 #define STEERING_FACTOR 18
 #define PI 3.14159
+#define approx 10e-6
 
 bool old_diff_not_ack;
 bool diff_not_ack;
@@ -43,12 +44,13 @@ void param_callback(project::parametersConfig &config, uint32_t level)
     diff_not_ack = config.diff_not_ack;
   }
 
-  if (config.x != x_k){
+  if (abs( config.x - x_k) > approx){
     x_k = config.x;
   }
-  if (config.y != y_k){
+  if (abs(config.y - y_k) > approx){
     y_k = config.y;
   }
+  ROS_INFO("diff_not_ack %s", diff_not_ack?"True": "False" );
 }
 
 typedef message_filters::sync_policies::ApproximateTime<project::floatStamped,
@@ -90,7 +92,7 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   }
   t_k = r_vel->header.stamp.nsec;
   //ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
-  std::cout << x_k << y_k << theta_k << '\n';
+  std::cout << x_k << " " << y_k << " " << theta_k << '\n';
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
 }
 
