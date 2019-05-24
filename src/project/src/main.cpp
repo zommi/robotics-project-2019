@@ -18,12 +18,8 @@
 #define PI 3.14159
 #define approx 10e-6
 
-<<<<<<< HEAD
-bool old_diff_not_ack;
-=======
 using namespace message_filters;
 
->>>>>>> e6f800a7005099de0a2eae2353ec8ee919f5af11
 bool diff_not_ack;
 
 double old_x_k = 0;
