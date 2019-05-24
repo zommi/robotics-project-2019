@@ -17,6 +17,8 @@
 #define STEERING_FACTOR 18
 #define PI 3.14159
 
+using namespace message_filters;
+
 bool diff_not_ack;
 
 double x_k = 0;
@@ -43,17 +45,13 @@ void param_callback(project::parametersConfig &config, uint32_t level)
 }
 
 typedef message_filters::sync_policies::ApproximateTime<project::floatStamped,
-                                      project::floatStamped,
-                                      project::floatStamped> myPolicy;
-
-
-using namespace message_filters;
-
+                                                        project::floatStamped,
+                                                        project::floatStamped> myPolicy;
 
 
 void odom_callback(const project::floatStamped::ConstPtr& r_vel,
-              const project::floatStamped::ConstPtr& l_vel,
-              const project::floatStamped::ConstPtr& steer)
+                    const project::floatStamped::ConstPtr& l_vel,
+                    const project::floatStamped::ConstPtr& steer)
 {
   //ROS_INFO("I heard: [%f] - [%f] - [%f]", r_vel->header.stamp.sec, l_vel->header.stamp.sec, steer->header.stamp.sec);
 
@@ -67,7 +65,7 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   if(T_s < 0)T_s += 1;
 
   if(diff_not_ack)
-  {
+  { //DIFFERENTIAL
     w_k = (r_vel->data - l_vel->data)/BASELINE;
 
     x_k += V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
@@ -75,12 +73,12 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
     theta_k += w_k * T_s;
 
     msg.child_frame_id = "Differential";
-  } else
-  {
+  }
+  else { //ACKERMANN
     w_k = V_k * tan(alpha) / FRONT_REAR_WHEELS_DISTANCE;
 
-    x_k += V_k * cos(alpha + V_k * sin(alpha) / FRONT_REAR_WHEELS_DISTANCE * T_s) * T_s;
-    y_k += V_k * sin(alpha + V_k * sin(alpha) / FRONT_REAR_WHEELS_DISTANCE * T_s) * T_s;
+    x_k += V_k * cos(theta_k) * T_s;
+    y_k += V_k * sin(theta_k) * T_s;
     theta_k += w_k * T_s;
 
     msg.child_frame_id = "Ackermann";
