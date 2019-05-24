@@ -14,10 +14,15 @@
 #define STEERING_FACTOR 18
 #define PI 3.14159
 
+bool old_diff_not_ack;
 bool diff_not_ack;
 
+double old_x_k = 0;
 double x_k = 0;
+
+double old_y_k = 0;
 double y_k = 0;
+
 double theta_k = 0;
 double t_k = 0;
 
@@ -33,9 +38,17 @@ void param_callback(project::parametersConfig &config, uint32_t level)
                                 config.x,
                                 config.y
                                       );
-  diff_not_ack = config.diff_not_ack;
-  x_k = config.x;
-  y_k = config.y;
+
+  if(config.diff_not_ack != diff_not_ack){
+    diff_not_ack = config.diff_not_ack;
+  }
+
+  if (config.x != x_k){
+    x_k = config.x;
+  }
+  if (config.y != y_k){
+    y_k = config.y;
+  }
 }
 
 typedef message_filters::sync_policies::ApproximateTime<project::floatStamped,
@@ -76,8 +89,8 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
     //ROS_INFO("PIPPOOOOOOOOOOOOOOOO");
   }
   t_k = r_vel->header.stamp.nsec;
-  ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
-
+  //ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
+  std::cout << x_k << y_k << theta_k << '\n';
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
 }
 
