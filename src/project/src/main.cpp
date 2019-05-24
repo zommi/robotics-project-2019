@@ -75,6 +75,8 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   double alpha = steer->data * PI / 180 / STEERING_FACTOR;
   nav_msgs::Odometry msg;
   tf::TransformBroadcaster odom_broadcaster;
+  //Transform transform;
+
 
   if(T_s < 0)T_s += 1;
 
@@ -125,6 +127,11 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
 
   pub.publish(msg);
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
+
+  /*transform.setOrigin(tf::Vector3(x_k, y_k, 0));
+  tf::Quaternion q;
+  q.setRPY(0,0, theta_k);
+  transform.setRotation(q);*/
 }
 
 int main(int argc, char** argv)
