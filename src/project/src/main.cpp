@@ -22,10 +22,10 @@ using namespace message_filters;
 
 bool diff_not_ack;
 
-double old_x_k = 0;
+double old_config_x = 0;
 double x_k = 0;
 
-double old_y_k = 0;
+double old_config_y = 0;
 double y_k = 0;
 
 double theta_k = 0;
@@ -45,15 +45,19 @@ void param_callback(project::parametersConfig &config, uint32_t level)
                                 config.y
                                       );
 
+
+
   if(config.diff_not_ack != diff_not_ack){
     diff_not_ack = config.diff_not_ack;
   }
 
-  if (abs( config.x - x_k) > approx){
+  if (( config.x != old_config_x ) ){
     x_k = config.x;
+    old_config_x = config.x;
   }
-  if (abs(config.y - y_k) > approx){
+  if (config.y != old_config_y){
     y_k = config.y;
+    old_config_y = config.y;
   }
   ROS_INFO("diff_not_ack %s", diff_not_ack?"True": "False" );
 }
