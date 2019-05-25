@@ -22,42 +22,51 @@ using namespace message_filters;
 
 bool diff_not_ack;
 
-double old_config_x = 0;
 double x_k = 0;
 
-double old_config_y = 0;
 double y_k = 0;
 
 double theta_k = 0;
+
 double t_k = 0;
 
 ros::Publisher pub;
-
+ros::Publisher custom_pub;
+project::odom custom_msg;
 
 /*cambia il valore del booleano diff_not_ack. Se vale vero, l'odometria verra calcolata
 in maniera differenziale, se falso invece secondo ackerman
  */
 void param_callback(project::parametersConfig &config, uint32_t level)
 {
-  ROS_INFO("Reconfigure Request: diff_not_ack = %s, x = %f, y = %f",
+  ROS_INFO("Reconfigure Request: diff_not_ack = %s, reset = %s, x_enable = %s, y_enable = %s, xy_enable = %s, x = %f, y = %f",
                                 config.diff_not_ack?"True":"False",
+                                config.reset?"True":"False",
+                                config.x_enable?"True":"False",
+                                config.y_enable?"True":"False",
+                                config.xy_enable?"True":"False",
                                 config.x,
                                 config.y
                                       );
+  diff_not_ack = config.diff_not_ack;
 
-
-
-  if(config.diff_not_ack != diff_not_ack){
-    diff_not_ack = config.diff_not_ack;
+  if(config.reset){
+      x_k = 0;
+      y_k = 0;
   }
-
-  if (( config.x != old_config_x ) ){
-    x_k = config.x;
-    old_config_x = config.x;
-  }
-  if (config.y != old_config_y){
-    y_k = config.y;
-    old_config_y = config.y;
+  else {
+      if(config.xy_enable){
+          x_k = config.x;
+          y_k = config.y;
+      }
+      else {
+          if (config.x_enable) {
+              x_k = config.x;
+          }
+          if (config.y_enable) {
+              y_k = config.y;
+          }
+      }
   }
   ROS_INFO("diff_not_ack %s", diff_not_ack?"True": "False" );
 }
@@ -92,7 +101,7 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
     y_k += V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
     theta_k += w_k * T_s;
 
-    msg.child_frame_id = "Differential";
+    msg.child_frame_id = "base_link";
   }
   else { //ACKERMANN
     w_k = V_k * tan(alpha) / FRONT_REAR_WHEELS_DISTANCE;
@@ -101,7 +110,7 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
     y_k += V_k * sin(theta_k) * T_s;
     theta_k += w_k * T_s;
 
-    msg.child_frame_id = "Ackermann";
+    msg.child_frame_id = "base_link";
   }
   t_k = r_vel->header.stamp.nsec;
   //ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
@@ -125,11 +134,18 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   msg.pose.pose.position.z = 0.0;
   msg.pose.pose.orientation = odom_quat;
   msg.header = r_vel->header;
-  msg.header.frame_id = "base_link";
+  msg.header.frame_id = "odom";
 
   std::cout << x_k << " " << y_k << " " << theta_k << "\n";
 
+  //custom message creation
+    custom_msg.x_value = x_k;
+    custom_msg.y_value = y_k;
+    custom_msg.theta = theta_k;
+    custom_msg.odom_type = diff_not_ack ? "Differential drive" : "Ackermann";
+
   pub.publish(msg);
+  custom_pub.publish(custom_msg);
   //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
 
   /*transform.setOrigin(tf::Vector3(x_k, y_k, 0));
@@ -153,6 +169,7 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   pub = n.advertise<nav_msgs::Odometry>("odom",1000);
+  custom_pub = n.advertise<project::odom>("customOdom",1000);
   tf::TransformBroadcaster odom_broadcaster;
 
   message_filters::Subscriber<project::floatStamped> sub_r_vel(n, "speedR_stamped", 1);
