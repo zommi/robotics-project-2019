@@ -32,10 +32,9 @@ double t_k = 0;
 
 ros::Publisher pub;
 ros::Publisher custom_pub;
-project::odom custom_msg;
 
 /*cambia il valore del booleano diff_not_ack. Se vale vero, l'odometria verra calcolata
-in maniera differenziale, se falso invece secondo ackerman
+in maniera differenziale, se falso invece secondo ackermann
  */
 void param_callback(project::parametersConfig &config, uint32_t level)
 {
@@ -80,16 +79,13 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
                     const project::floatStamped::ConstPtr& l_vel,
                     const project::floatStamped::ConstPtr& steer)
 {
-  //ROS_INFO("I heard: [%f] - [%f] - [%f]", r_vel->header.stamp.sec, l_vel->header.stamp.sec, steer->header.stamp.sec);
-
   double V_k = (r_vel->data + l_vel->data)/2;
   double w_k;
   double T_s = (r_vel->header.stamp.nsec - t_k) * pow(10,-9);
   double alpha = steer->data * PI / 180 / STEERING_FACTOR;
   nav_msgs::Odometry msg;
+  project::odom custom_msg;
   tf::TransformBroadcaster odom_broadcaster;
-  //Transform transform;
-
 
   if(T_s < 0)T_s += 1;
 
@@ -100,8 +96,6 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
     x_k += V_k * T_s * cos(theta_k + (w_k * T_s) / 2);
     y_k += V_k * T_s * sin(theta_k + (w_k * T_s) / 2);
     theta_k += w_k * T_s;
-
-    msg.child_frame_id = "base_link";
   }
   else { //ACKERMANN
     w_k = V_k * tan(alpha) / FRONT_REAR_WHEELS_DISTANCE;
@@ -109,11 +103,9 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
     x_k += V_k * cos(theta_k) * T_s;
     y_k += V_k * sin(theta_k) * T_s;
     theta_k += w_k * T_s;
-
-    msg.child_frame_id = "base_link";
   }
+
   t_k = r_vel->header.stamp.nsec;
-  //ROS_INFO("Current odometry: x:[%f] - y:[%f] - theta(rad):[%f]", x_k, y_k, theta_k);
 
   geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta_k);
 
@@ -135,35 +127,28 @@ void odom_callback(const project::floatStamped::ConstPtr& r_vel,
   msg.pose.pose.orientation = odom_quat;
   msg.header = r_vel->header;
   msg.header.frame_id = "odom";
-
-  std::cout << x_k << " " << y_k << " " << theta_k << "\n";
+  msg.child_frame_id = "base_link";
 
   //custom message creation
-    custom_msg.x_value = x_k;
-    custom_msg.y_value = y_k;
-    custom_msg.theta = theta_k;
-    custom_msg.odom_type = diff_not_ack ? "Differential drive" : "Ackermann";
+  custom_msg.x_value = x_k;
+  custom_msg.y_value = y_k;
+  custom_msg.theta = theta_k;
+  custom_msg.odom_type = diff_not_ack ? "Differential drive" : "Ackermann";
 
   pub.publish(msg);
   custom_pub.publish(custom_msg);
-  //ROS_INFO("Omega: %f, T_s: %f", w_k, T_s);
-
-  /*transform.setOrigin(tf::Vector3(x_k, y_k, 0));
-  tf::Quaternion q;
-  q.setRPY(0,0, theta_k);
-  transform.setRotation(q);*/
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "main");
 
-  //linee di codice per la dynamic configuration
+  //linee di codice per la dynamic reconfigure
   dynamic_reconfigure::Server<project::parametersConfig> server;
   dynamic_reconfigure::Server<project::parametersConfig>::CallbackType f;
   //bindo la funzione che aggiorna i parametri
   f = boost::bind(&param_callback, _1, _2);
-  // setto la funzione di collback nel server
+  // setto la funzione di callback nel server
   server.setCallback(f);
 
   ros::NodeHandle n;
