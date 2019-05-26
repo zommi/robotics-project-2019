@@ -20,6 +20,10 @@
 
 using namespace message_filters;
 
+typedef message_filters::sync_policies::ApproximateTime<project::floatStamped,
+                                                        project::floatStamped,
+                                                        project::floatStamped> myPolicy;
+
 bool diff_not_ack;
 
 double x_k = 0;
@@ -70,10 +74,6 @@ void param_callback(project::parametersConfig &config, uint32_t level)
   }
   ROS_INFO("diff_not_ack %s", diff_not_ack?"True": "False" );
 }
-
-typedef message_filters::sync_policies::ApproximateTime<project::floatStamped,
-                                                        project::floatStamped,
-                                                        project::floatStamped> myPolicy;
 
 
 void odom_callback(const project::floatStamped::ConstPtr& r_vel,
