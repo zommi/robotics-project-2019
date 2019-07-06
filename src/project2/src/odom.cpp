@@ -35,7 +35,7 @@ void odom_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "main2");
+  ros::init(argc, argv, "odom");
 
   ros::NodeHandle n;
 
