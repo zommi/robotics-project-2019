@@ -41,7 +41,7 @@ void odom_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
   double w_k;
   double T_s = (msg->header.stamp.nsec - t_k) * pow(10,-9);
   double alpha = msg->point.x / 180 * M_PI / STEERING_FACTOR;
-  double V_k = msg->point.y;
+  double V_k = msg->point.y / 3.6;
 
   if(T_s < 0)T_s += 1;
   w_k = V_k * tan(alpha) / FRONT_REAR_WHEELS_DISTANCE;
