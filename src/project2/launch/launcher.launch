@@ -1,47 +1,29 @@
-<launch>  
+<launch>
+
+<param name="/use_sim_time" value="true" />
+
+<node pkg="tf2_ros" type="static_transform_publisher" name="bl_imu" args="0 0 0 0 0 0 base_link imu_link" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="bl_rgps" args="0 0 0 0 0 0 base_link rgps" />  
   
-  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
-    <rosparam command="load" file="$(find project2)/params/ekf_template.yaml" />
 
-    <!--  Placeholder for output topic remapping
-    <remap from="odometry/filtered" to=""/>
-    <remap from="accel/filtered" to=""/>
-    -->
-
+<node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
+              <rosparam command="load" file="$(find project2)/params/ekf_template.yaml" />
   </node>
-  <node pkg="project2" type="filter" name="filter" clear_params="true">
 
-
-    <!--  Placeholder for output topic remapping
-    <remap from="odometry/filtered" to=""/>
-    <remap from="accel/filtered" to=""/>
-    -->
-
+  <node pkg="imu_complementary_filter" type="complementary_filter_node"
+      name="complementary_filter_gain_node" output="screen" clear_params="true">
+    <param name="do_bias_estimation" value="true"/>
+    <param name="do_adaptive_gain" value="true"/>
+    <param name="use_mag" value="false"/>
+    <param name="gain_acc" value="0.01"/>
+    <param name="gain_mag" value="0.01"/>
   </node>
+
   <node pkg="project2" type="odom" name="odom" clear_params="true">
-
-
-    <!--  Placeholder for output topic remapping
-    <remap from="odometry/filtered" to=""/>
-    <remap from="accel/filtered" to=""/>
-    -->
-
-  </node>
-  <node pkg="project2" type="translator" name="translator" clear_params="true">
-
-    <!--  Placeholder for output topic remapping
-    <remap from="odometry/filtered" to=""/>
-    <remap from="accel/filtered" to=""/>
-    -->
-
   </node>
   
   <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" respawn="true" clear_params="true">
       <rosparam command="load" file="$(find project2)/params/gps.yaml" />
-
-    <param name="magnetic_declination_radians" value="0"/>
-
-    <param name="yaw_offset" value="0"/>
 
     <remap from="/gps/fix" to="/swiftnav/rear/gps" />
 

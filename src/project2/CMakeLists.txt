@@ -110,7 +110,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #	INCLUDE_DIRS include
-  	LIBRARIES complementary_filter
+  	#LIBRARIES complementary_filter
   	CATKIN_DEPENDS roscpp std_msgs message_filters sensor_msgs tf
 #  DEPENDS system_lib
 )
@@ -127,12 +127,12 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(complementary_filter
-   src/complementary_filter_ros.cpp
-   src/complementary_filter.cpp
-   include/imu_complementary_filter/complementary_filter.h
-   include/imu_complementary_filter/complementary_filter_ros.h  
-)
+#add_library(#complementary_filter
+   #src/complementary_filter_ros.cpp
+   #src/complementary_filter.cpp
+   #include/imu_complementary_filter/complementary_filter.h
+   #include/imu_complementary_filter/complementary_filter_ros.h  
+#)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -208,13 +208,13 @@ add_library(complementary_filter
 # catkin_add_nosetests(test)
 
 add_executable(odom src/odom.cpp)
-add_executable(filter src/filter.cpp)
-add_executable(translator src/translator.cpp)
+#add_executable(complementary_filter_node src/complementary_filter_node.cpp)
+#add_executable(translator src/translator.cpp)
 
 add_dependencies(odom ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(filter ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(translator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(complementary_filter_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(translator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(odom ${catkin_LIBRARIES})
-target_link_libraries(filter complementary_filter ${catkin_LIBRARIES})
-target_link_libraries(translator ${catkin_LIBRARIES})
+#target_link_libraries(complementary_filter_node complementary_filter ${catkin_LIBRARIES})
+#target_link_libraries(translator ${catkin_LIBRARIES})

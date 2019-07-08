@@ -2,7 +2,7 @@
 #include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
-
+#include <time.h>
 #include <math.h>
 
 #define BASELINE 1.30
@@ -16,7 +16,7 @@ private:
   ros::NodeHandle n;
   ros::Subscriber sub;
   ros::Publisher pub;
-  tf::TransformBroadcaster odom_broadcaster;
+  //tf::TransformBroadcaster odom_broadcaster;
   geometry_msgs::TransformStamped odom_trans;
   double x_k;
   double y_k;
@@ -31,7 +31,7 @@ odom_pub_sub()
   x_k = 0;
   y_k = 0;
   theta_k = 0;
-  t_k = 0;
+  t_k = (ros::Time::now()).nsec;
   sub = n.subscribe("/speedsteer",1000,&odom_pub_sub::odom_callback,this);
   pub = n.advertise<nav_msgs::Odometry>("/odom",1);
 }
@@ -39,7 +39,7 @@ odom_pub_sub()
 void odom_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
 {
   double w_k;
-  double T_s = (msg->header.stamp.nsec - t_k) * pow(10,-9);
+  double T_s = ((ros::Time::now()).nsec - t_k) * pow(10,-9);
   double alpha = msg->point.x / 180 * M_PI / STEERING_FACTOR;
   double V_k = msg->point.y / 3.6;
 
@@ -50,12 +50,13 @@ void odom_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
   y_k += V_k * sin(theta_k) * T_s;
   theta_k += w_k * T_s;
 
-  t_k = msg->header.stamp.nsec;
+  t_k = (ros::Time::now()).nsec;
 
   std::cout << "x = " << x_k << "\ny = " << y_k << "\ntheta = " << theta_k << "\n";
 
   geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta_k);
 
+/*
   odom_trans.header.stamp = msg->header.stamp;
   odom_trans.header.frame_id = "odom";
   odom_trans.child_frame_id = "base_link";
@@ -65,7 +66,7 @@ void odom_callback(const geometry_msgs::PointStamped::ConstPtr& msg)
   odom_trans.transform.translation.z = 0.0;
   odom_trans.transform.rotation = odom_quat;
   odom_broadcaster.sendTransform(odom_trans);
-
+*/
 
   odom_msg.pose.pose.position.x = x_k;
   odom_msg.pose.pose.position.y = y_k;
