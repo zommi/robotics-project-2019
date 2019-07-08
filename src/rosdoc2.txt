@@ -1,0 +1,20 @@
+Group members:
+	Matteo Pacciani 10525096
+	Tommaso Pegolotti 10537419
+	Oscar Pindaro	10568511
+
+Description of files inside the archive:
+
+Inside the archive there will be an src folder containing 2 packages: project2 and the complementary filter package.
+Inside the project2 package there will be , apart from a CMakeLists.txt file and a package.xml file, an src folder containing the node publishing the odometry, a launch folder containing the launch file for the project and a params folder containing the params for both ekf filter and navsat. The complementary filter package source code has been modified to meet our needs.
+
+How to start the nodes:
+
+	-Compile the package
+	-run the bag file with the flag --clock
+	-run the launch file with "roslaunch project2 launcher.launch"
+
+In our tests we found that it may be necessary to run a rosclean purge before running the launch file.
+
+Parameters used:
+To set up the parameters in the yaml files we followed a template we found in the documentation of the libraries. 
